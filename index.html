@@ -3,37 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epic Tic Tac Toe</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Sparkly Reading Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka One', cursive;
+            background: linear-gradient(135deg, #ff6ec7, #9c27b0, #673ab7);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 3s infinite ease-in-out;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .title {
+            color: white;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .word-display {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .target-word {
+            font-size: 2.5rem;
+            color: #7b1fa2;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .letter-slots {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .letter-slot {
+            width: 80px;
+            height: 80px;
+            border: 4px dashed #ff6ec7;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .letter-slot.filled {
+            background: linear-gradient(135deg, #ff6ec7, #9c27b0);
+            color: white;
+            border-color: #7b1fa2;
+            transform: scale(1.1);
+        }
+
+        .letter-slot.correct {
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1.1); }
+            40% { transform: translateY(-10px) scale(1.1); }
+            60% { transform: translateY(-5px) scale(1.1); }
+        }
+
+        .letters-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .letter-tile {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ff6ec7, #9c27b0);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            user-select: none;
+        }
+
+        .letter-tile:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .letter-tile.used {
+            opacity: 0.3;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .word-illustration {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .celebration.show {
+            display: flex;
+            animation: celebrationFade 0.5s ease;
+        }
+
+        @keyframes celebrationFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .celebration-content {
+            text-align: center;
+            animation: celebrationBounce 0.8s ease;
+        }
+
+        @keyframes celebrationBounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .celebration h2 {
+            font-size: 4rem;
+            color: #7b1fa2;
+            margin-bottom: 20px;
+        }
+
+        .celebration .emoji {
+            font-size: 6rem;
+            margin: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .next-button {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #ff6ec7, #9c27b0);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Fredoka One', cursive;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .next-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .sound-button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .sound-button:hover {
+            transform: scale(1.2);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">Epic Tic Tac Toe</h1>
+    <div class="sparkles"></div>
+    
+    <div class="game-container">
+        <h1 class="title">✨ Sparkly Reading Game ✨</h1>
         
-        <div class="game-info">
-            <div class="current-player">Player <span id="current-player">X</span>'s Turn</div>
-            <button class="reset-btn" id="reset-btn">New Game</button>
+        <div class="word-display">
+            <div class="target-word">
+                Spell: <span id="target-word">CAT</span>
+                <button class="sound-button" onclick="playWordSound()">🔊</button>
+            </div>
+            <div class="letter-slots" id="letter-slots">
+                <div class="letter-slot" data-position="0"></div>
+                <div class="letter-slot" data-position="1"></div>
+                <div class="letter-slot" data-position="2"></div>
+            </div>
         </div>
-        
-        <div class="game-board" id="game-board">
-            <div class="cell" data-index="0"></div>
-            <div class="cell" data-index="1"></div>
-            <div class="cell" data-index="2"></div>
-            <div class="cell" data-index="3"></div>
-            <div class="cell" data-index="4"></div>
-            <div class="cell" data-index="5"></div>
-            <div class="cell" data-index="6"></div>
-            <div class="cell" data-index="7"></div>
-            <div class="cell" data-index="8"></div>
+
+        <div class="word-illustration" id="word-illustration">
+            🐱
         </div>
-        
-        <div class="winner-display" id="winner-display">
-            <div class="winner-text" id="winner-text"></div>
+
+        <div class="letters-container" id="letters-container">
+            <div class="letter-tile" data-letter="C" onclick="selectLetter(this)">C</div>
+            <div class="letter-tile" data-letter="A" onclick="selectLetter(this)">A</div>
+            <div class="letter-tile" data-letter="T" onclick="selectLetter(this)">T</div>
+            <div class="letter-tile" data-letter="B" onclick="selectLetter(this)">B</div>
+            <div class="letter-tile" data-letter="H" onclick="selectLetter(this)">H</div>
         </div>
     </div>
-    
-    <div class="particles" id="particles"></div>
-    
-    <script src="script.js"></script>
+
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <h2>Great Job!</h2>
+            <div class="emoji">🎉</div>
+            <div class="emoji">⭐</div>
+            <div class="emoji">🎊</div>
+            <button class="next-button" onclick="nextWord()">Next Word!</button>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { word: 'CAT', emoji: '🐱', letters: ['C', 'A', 'T'] },
+            { word: 'BAT', emoji: '🦇', letters: ['B', 'A', 'T'] },
+            { word: 'HAT', emoji: '🎩', letters: ['H', 'A', 'T'] }
+        ];
+
+        let currentWordIndex = 0;
+        let currentWord = words[currentWordIndex];
+        let selectedPosition = 0;
+        let filledSlots = 0;
+
+        // Create sparkles
+        function createSparkles() {
+            const sparklesContainer = document.querySelector('.sparkles');
+            for (let i = 0; i < 50; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                sparklesContainer.appendChild(sparkle);
+            }
+        }
+
+        // Play letter sound
+        function playLetterSound(letter) {
+            let soundText = '';
+            switch(letter) {
+                case 'C': soundText = 'kuh'; break;
+                case 'A': soundText = 'ahh'; break;
+                case 'T': soundText = 'tuh'; break;
+                case 'B': soundText = 'buh'; break;
+                case 'H': soundText = 'huh'; break;
+                default: soundText = letter.toLowerCase() + 'uh';
+            }
+            const utterance = new SpeechSynthesisUtterance(soundText);
+            utterance.rate = 0.4;
+            utterance.pitch = 1.3;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Play word sound
+        function playWordSound() {
+            const utterance = new SpeechSynthesisUtterance(currentWord.word);
+            utterance.rate = 0.6;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Select letter
+        function selectLetter(letterTile) {
+            if (letterTile.classList.contains('used')) return;
+            
+            const letter = letterTile.dataset.letter;
+            playLetterSound(letter);
+            
+            // Find next empty slot
+            const slots = document.querySelectorAll('.letter-slot');
+            let targetSlot = null;
+            
+            for (let i = 0; i < slots.length; i++) {
+                if (!slots[i].textContent) {
+                    targetSlot = slots[i];
+                    break;
+                }
+            }
+            
+            if (targetSlot) {
+                targetSlot.textContent = letter;
+                targetSlot.classList.add('filled');
+                letterTile.classList.add('used');
+                filledSlots++;
+                
+                // Check if word is complete
+                if (filledSlots === 3) {
+                    setTimeout(checkWord, 500);
+                }
+            }
+        }
+
+        // Check if word is correct
+        function checkWord() {
+            const slots = document.querySelectorAll('.letter-slot');
+            let spelledWord = '';
+            
+            slots.forEach(slot => {
+                spelledWord += slot.textContent;
+            });
+            
+            if (spelledWord === currentWord.word) {
+                // Correct word!
+                slots.forEach(slot => {
+                    slot.classList.add('correct');
+                });
+                
+                setTimeout(showCelebration, 600);
+            } else {
+                // Wrong word, reset
+                setTimeout(resetWord, 1000);
+            }
+        }
+
+        // Show celebration
+        function showCelebration() {
+            const celebration = document.getElementById('celebration');
+            celebration.classList.add('show');
+            
+            // Play success sound
+            const utterance = new SpeechSynthesisUtterance('Excellent! You spelled ' + currentWord.word + '!');
+            utterance.rate = 0.8;
+            utterance.pitch = 1.3;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Next word
+        function nextWord() {
+            const celebration = document.getElementById('celebration');
+            celebration.classList.remove('show');
+            
+            currentWordIndex = (currentWordIndex + 1) % words.length;
+            currentWord = words[currentWordIndex];
+            
+            updateWordDisplay();
+            resetWord();
+        }
+
+        // Reset word slots
+        function resetWord() {
+            const slots = document.querySelectorAll('.letter-slot');
+            const letters = document.querySelectorAll('.letter-tile');
+            
+            slots.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled', 'correct');
+            });
+            
+            letters.forEach(letter => {
+                letter.classList.remove('used');
+            });
+            
+            filledSlots = 0;
+        }
+
+        // Update word display
+        function updateWordDisplay() {
+            document.getElementById('target-word').textContent = currentWord.word;
+            document.getElementById('word-illustration').textContent = currentWord.emoji;
+        }
+
+        // Initialize game
+        createSparkles();
+        updateWordDisplay();
+        
+        // Play welcome message
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance('Welcome to the Sparkly Reading Game! Let\'s spell some words!');
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            speechSynthesis.speak(utterance);
+        }, 1000);
+    </script>
 </body>
 </html>
